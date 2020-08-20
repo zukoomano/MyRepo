@@ -6,5 +6,5 @@ cat /etc/passwd
 echo " "
 echo "====================================="
 echo " "
-echo "Added hook concept"
+echo "Added Git hub hook concept"
 echo "End of the Script"
