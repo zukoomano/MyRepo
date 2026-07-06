@@ -30,8 +30,8 @@ jobs:
         env:
           OANDA_KEY: ${{ secrets.OANDA_KEY }}
           OANDA_ENV: ${{ secrets.OANDA_ENV }}
-          TG_TOKEN:  ${{ secrets.TG_TOKEN }}
-          TG_CHAT:   ${{ secrets.TG_CHAT }}
+          TG_TOKEN: "AAFgXZs_C_EpL4-r6jHEJGZoUH_Q_-RZefE"
+          TG_CHAT:   "@metalsignalsrk"
         run: node run.js
 
       - name: Save state (so signals don't repeat)
