@@ -66,6 +66,20 @@ function buildMsg(sig, symbol) {
   ].join("\n");
 }
 
+function buildNeutralMsg(symbol, sig) {
+  const conf = sig ? sig.conf : 0;
+  const price = sig ? fmt(sig.price, symbol) : "-";
+  return [
+    `⏸️ *NEUTRAL*  ${symbol} · ${TIMEFRAME}`,
+    `━━━━━━━━━━━━━━━━━━`,
+    `Price: ${price}`,
+    `No clear setup right now.`,
+    `⚠️ *Do NOT enter* until a clear BUY/SELL signal is provided.`,
+    `━━━━━━━━━━━━━━━━━━`,
+    `🕐 ${new Date().toUTCString()}`,
+  ].join("\n");
+}
+
 function loadState(){ try { return JSON.parse(fs.readFileSync(STATE_FILE,"utf8")); } catch(e){ return { lastDir: {} }; } }
 function saveState(st){ fs.writeFileSync(STATE_FILE, JSON.stringify(st, null, 2)); }
 
@@ -115,7 +129,13 @@ function isMarketClosed(){
           console.log(`${sym}: same ${verdict} as last — no repeat.`);
         }
       } else {
-        if (st.lastDir[sym]) { delete st.lastDir[sym]; changed = true; }  // reset on NEUTRAL
+        // NEUTRAL — notify once when it changes to neutral (not every cycle)
+        if (st.lastDir[sym] !== "NEUTRAL") {
+          await sendTelegram(buildNeutralMsg(sym, sig));
+          st.lastDir[sym] = "NEUTRAL"; changed = true;
+        } else {
+          console.log(`${sym}: still NEUTRAL — no repeat.`);
+        }
       }
     } catch (e) {
       console.error(`${sym} error:`, e.message);
