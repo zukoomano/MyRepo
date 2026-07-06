@@ -6,6 +6,9 @@ on:
     - cron: "15 * * * *"
     - cron: "30 * * * *"
     - cron: "45 * * * *"
+  push:
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:
