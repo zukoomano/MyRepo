@@ -52,31 +52,25 @@ async function sendTelegram(text) {
   else console.log("Telegram sent.");
 }
 
-function buildMsg(sig, symbol) {
-  const dir = sig.overall === "BUY" ? "🟢" : "🔴";
-  return [
-    `🚨 *${sig.overall}* ${dir}  ${symbol} · ${TIMEFRAME}`,
-    `━━━━━━━━━━━━━━━━━━`,
-    `Entry: ${fmt(sig.levels.entry, symbol)}`,
-    `SL:    ${fmt(sig.levels.sl, symbol)}`,
-    `TP1:   ${fmt(sig.levels.tp1, symbol)}`,
-    `TP2:   ${fmt(sig.levels.tp2, symbol)}`,
-    `━━━━━━━━━━━━━━━━━━`,
-    `🕐 ${new Date().toUTCString()}`,
-  ].join("\n");
+function utcIST(d){
+  d = d || new Date();
+  const p = n => String(n).padStart(2,"0");
+  const ist = new Date(d.getTime()+330*60000);
+  return `${p(d.getUTCHours())}:${p(d.getUTCMinutes())} UTC (${p(ist.getUTCHours())}:${p(ist.getUTCMinutes())} IST)`;
 }
 
-function buildNeutralMsg(symbol, sig) {
-  const conf = sig ? sig.conf : 0;
-  const price = sig ? fmt(sig.price, symbol) : "-";
+// Build one line-block per metal for the combined message
+function metalBlock(sym, sig, isNew) {
+  const verdict = sig ? sig.overall : "NEUTRAL";
+  if (verdict === "NEUTRAL") {
+    return `⏸️ *${sym}: NEUTRAL* — no trade, stay out`;
+  }
+  const dir = verdict === "BUY" ? "🟢" : "🔴";
+  const tag = isNew ? "🚨 *NEW — you may enter*" : "↔️ still active — _already in trade, don't re-enter_";
   return [
-    `⏸️ *NEUTRAL*  ${symbol} · ${TIMEFRAME}`,
-    `━━━━━━━━━━━━━━━━━━`,
-    `Price: ${price}`,
-    `No clear setup right now.`,
-    `⚠️ *Do NOT enter* until a clear BUY/SELL signal is provided.`,
-    `━━━━━━━━━━━━━━━━━━`,
-    `🕐 ${new Date().toUTCString()}`,
+    `${dir} *${sym}: ${verdict}*  ${tag}`,
+    `   Entry ${fmt(sig.levels.entry, sym)} · SL ${fmt(sig.levels.sl, sym)}`,
+    `   TP1 ${fmt(sig.levels.tp1, sym)} · TP2 ${fmt(sig.levels.tp2, sym)}`,
   ].join("\n");
 }
 
@@ -102,46 +96,49 @@ function isMarketClosed(){
   if (!OANDA_KEY) { console.error("OANDA_KEY secret missing."); process.exit(1); }
 
   const mc = isMarketClosed();
-  if (mc.closed) { console.log("Market closed (" + mc.reason + ") — skipping analysis."); return; }
+  if (mc.closed) { console.log("Market closed (" + mc.reason + ") — skipping analysis (no message)."); return; }
 
   const sess = currentSession();
-  // Sessions all enabled by default in cloud (Asian/London/NY); off-session pauses signals.
   const sessionActive = sess.asian || sess.london || sess.ny;
   const opts = { tpPoints: TP_POINTS, tp2Points: TP2_POINTS, slPoints: SL_POINTS,
                  sessionActive, sessionName: sess.name, dxyBias: "NEUTRAL", dxyDetail: "" };
 
   const st = loadState();
   st.lastDir = st.lastDir || {};
-  let changed = false;
 
+  const blocks = [];
   for (const sym of SYMBOLS) {
     try {
       const candles = await fetchOANDA(sym);
       const sig = generateSignals(candles, opts);
       const verdict = sig ? sig.overall : "NEUTRAL";
-      console.log(`${sym}: ${verdict}${sig?` (${sig.conf}%)`:""} | session ${sess.name}`);
-
-      if (sig && verdict !== "NEUTRAL") {
-        if (st.lastDir[sym] !== verdict) {          // new or flipped → alert once
-          await sendTelegram(buildMsg(sig, sym));
-          st.lastDir[sym] = verdict; changed = true;
-        } else {
-          console.log(`${sym}: same ${verdict} as last — no repeat.`);
-        }
-      } else {
-        // NEUTRAL — notify once when it changes to neutral (not every cycle)
-        if (st.lastDir[sym] !== "NEUTRAL") {
-          await sendTelegram(buildNeutralMsg(sym, sig));
-          st.lastDir[sym] = "NEUTRAL"; changed = true;
-        } else {
-          console.log(`${sym}: still NEUTRAL — no repeat.`);
-        }
-      }
+      const isNew = (verdict !== "NEUTRAL") && (st.lastDir[sym] !== verdict);
+      console.log(`${sym}: ${verdict}${sig?` (${sig.conf}%)`:""}${isNew?" [NEW]":""} | session ${sess.name}`);
+      blocks.push(metalBlock(sym, sig, isNew));
+      st.lastDir[sym] = verdict;   // remember for NEW detection next run
     } catch (e) {
       console.error(`${sym} error:`, e.message);
+      blocks.push(`⚠️ *${sym}*: data error (${e.message})`);
     }
   }
 
-  if (changed) saveState(st);
-  console.log("Done.", changed ? "State updated." : "No state change.");
+  // Daily heartbeat header — once per UTC day
+  const today = new Date().toISOString().slice(0,10);
+  let header = `📊 *Metal Signal Pro* · ${TIMEFRAME} · ${utcIST()}`;
+  if (st.lastHeartbeat !== today) {
+    header = `✅ *Daily heartbeat — system running*\n` + header;
+    st.lastHeartbeat = today;
+  }
+
+  const msg = [
+    header,
+    `━━━━━━━━━━━━━━━━━━`,
+    blocks.join("\n\n"),
+    `━━━━━━━━━━━━━━━━━━`,
+    `⚠️ Enter only on 🚨 *NEW* signals. Never re-enter an "active" one or trade a NEUTRAL.`,
+  ].join("\n");
+
+  await sendTelegram(msg);   // send EVERY run
+  saveState(st);
+  console.log("Done. Message sent.");
 })();
