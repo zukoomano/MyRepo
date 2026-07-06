@@ -30,7 +30,7 @@ jobs:
         env:
           OANDA_KEY: ${{ secrets.OANDA_KEY }}
           OANDA_ENV: ${{ secrets.OANDA_ENV }}
-          TG_TOKEN: "AAFgXZs_C_EpL4-r6jHEJGZoUH_Q_-RZefE"
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT:   "@metalsignalsrk"
         run: node run.js
 
