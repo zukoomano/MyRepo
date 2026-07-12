@@ -1,8 +1,11 @@
 {
-  "lastDir": {},
+  "lastDir": {
+    "XAUUSD": "NEUTRAL",
+    "XAGUSD": "NEUTRAL"
+  },
   "losses": 0,
   "wins": 0,
   "tripped": null,
-  "day": null,
-  "lastHeartbeat": null
+  "day": "2026-07-12",
+  "lastHeartbeat": "2026-07-12"
 }
