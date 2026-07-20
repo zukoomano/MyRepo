@@ -2,18 +2,14 @@ name: Metal Signals
 
 on:
   schedule:
-    - cron: "0 * * * *"
-    - cron: "15 * * * *"
-    - cron: "30 * * * *"
-    - cron: "45 * * * *"
-  push:
-    branches:
-      - master
-  workflow_dispatch:
+    - cron: "2 * * * *"   # once per hour, 2 min after the hour (H1 candle just closed)
+  workflow_dispatch:          # lets you run it manually from the Actions tab
 
+# Allow the workflow to commit the updated state.json back to the repo
 permissions:
   contents: write
 
+# Prevent overlapping runs
 concurrency:
   group: metal-signals
   cancel-in-progress: false
@@ -34,8 +30,8 @@ jobs:
         env:
           OANDA_KEY: ${{ secrets.OANDA_KEY }}
           OANDA_ENV: ${{ secrets.OANDA_ENV }}
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
-          TG_CHAT: "@metalsignalsrk"
+          TG_TOKEN:  ${{ secrets.TG_TOKEN }}
+          TG_CHAT:   ${{ secrets.TG_CHAT }}
         run: node run.js
 
       - name: Save state (so signals don't repeat)
