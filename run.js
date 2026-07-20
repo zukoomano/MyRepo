@@ -15,7 +15,7 @@ const TG_TOKEN  = process.env.TG_TOKEN  || "";
 const TG_CHAT   = process.env.TG_CHAT   || "";
 
 // ---- Settings (edit these) ----
-const TIMEFRAME     = "M15";
+const TIMEFRAME     = "H1";  // analyse hourly candles (better signal-to-noise than M15)
 const SL_POINTS     = 200;   // stop floor in points (engine also enforces 1.2x ATR)
 const SPREAD_POINTS = 0;     // your typical Exness spread in points (0 = ignore)
 const MAX_LOSSES    = 3;     // circuit breaker: pause after N consecutive losses
