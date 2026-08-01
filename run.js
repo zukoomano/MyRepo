@@ -21,11 +21,18 @@ const SPREAD_POINTS = 0;     // your typical Exness spread in points (0 = ignore
 const MAX_LOSSES    = 3;     // circuit breaker: pause after N consecutive losses
 const CORREL_GATE   = true;  // block same-direction signal on the other metal
 const NEWS_BLACKOUT = true;  // pause signals around high-impact releases
-const SYMBOLS       = ["XAUUSD", "XAGUSD"];
+const SYMBOLS       = ["XAUUSD", "XAGUSD", "USDJPY"];
 const STATE_FILE    = "state.json";
 
+// Per-symbol properties (metals vs JPY pair differ in decimals, pip size)
+function symProps(sym){
+  if(sym==="USDJPY") return { inst:"USD_JPY", decimals:3, pointSize:0.001, kind:"fx" };
+  if(sym==="XAGUSD") return { inst:"XAG_USD", decimals:4, pointSize:0.01,  kind:"metal" };
+  return                     { inst:"XAU_USD", decimals:2, pointSize:0.01,  kind:"metal" };
+}
+
 // ---- Helpers ----
-function fmt(v, s){ return v==null ? "-" : (s==="XAUUSD" ? Number(v).toFixed(2) : Number(v).toFixed(4)); }
+function fmt(v, s){ return v==null ? "-" : Number(v).toFixed(symProps(s).decimals); }
 function utcIST(d){
   d = d || new Date();
   const p = n => String(n).padStart(2,"0");
@@ -67,6 +74,7 @@ function newsBlackout(){
 // ---- GATE: Correlation (gold & silver ~0.8 correlated) ----
 function correlationBlocked(st, symbol, dir){
   if (!CORREL_GATE || dir === "NEUTRAL") return null;
+  if (symbol === "USDJPY") return null;                 // FX pair is independent of the metals
   const other = symbol === "XAUUSD" ? "XAGUSD" : "XAUUSD";
   if (st.lastDir[other] === dir)
     return `Correlation gate — already ${dir} on ${other}. Gold & silver move together; this doubles the same bet.`;
@@ -75,7 +83,7 @@ function correlationBlocked(st, symbol, dir){
 
 // ---- OANDA ----
 async function fetchOANDA(symbol) {
-  const inst = symbol === "XAUUSD" ? "XAU_USD" : "XAG_USD";
+  const inst = symProps(symbol).inst;
   const gran = { M15:"M15", M30:"M30", H1:"H1" }[TIMEFRAME] || "M15";
   const host = OANDA_ENV === "live" ? "https://api-fxtrade.oanda.com" : "https://api-fxpractice.oanda.com";
   const url = `${host}/v3/instruments/${inst}/candles?granularity=${gran}&count=250&price=M`;
@@ -152,7 +160,8 @@ function metalBlock(sym, sig, isNew, blocked) {
   for (const sym of SYMBOLS) {
     try {
       const candles = await fetchOANDA(sym);
-      const sig = generateSignals(candles, opts);
+      const symOpts = { ...opts, pointSize: symProps(sym).pointSize };
+      const sig = generateSignals(candles, symOpts);
       const v = sig ? sig.overall : "NEUTRAL";
 
       let blocked = null;
