@@ -1,5 +1,6 @@
 // Metal Signal Pro — signal engine (auto-extracted from index.html)
-// Includes: 5 gates, 15 indicators, anti-chop, ATR-adaptive stops, spread veto, 2:1 R:R
+// 5 gates, 15 indicators, anti-chop, ATR-adaptive stops, spread veto, 2:1 R:R
+// pointSize is passed via opts (metals 0.01, USDJPY 0.001)
 
 function calcEMA(arr, period) {
   const k = 2 / (period + 1);
@@ -319,7 +320,7 @@ function generateSignals(candles, opts) {
   const fib=detectFibonacci(candles, struct.trend);
 
   const atrArr=calcATR(highs,lows,closes),atr=atrArr[n-1]||0;
-  const pointSize = 0.01;
+  const pointSize = opts.pointSize || 0.01;   // metals 0.01, USDJPY 0.001
 
   // ===== STAGE 1: REGIME (trend vs range) =====
   // Higher-timeframe bias proxy: longer EMAs on current data
@@ -429,11 +430,15 @@ function generateSignals(candles, opts) {
   //     • trend continuation: HTF bias agrees AND ADX confirms a strong trend, OR
   //     • strong reversal: at least 6 of the 15 indicator reads agree.
   //   And the opposite side must NOT also be set up.
-  const STRONG_CONFLUENCE = 6;
-  const buyCore   = B.locA && B.trigA;
-  const sellCore  = S.locA && S.trigA;
-  const buyStrong  = (htf==="BUY"  && strongTrend) || supBuy  >= STRONG_CONFLUENCE;
-  const sellStrong = (htf==="SELL" && strongTrend) || supSell >= STRONG_CONFLUENCE;
+  // Sensitivity: Strict=6 (rare, highest conviction), Moderate=5, Loose=4 (more signals, lower quality)
+  const STRONG_CONFLUENCE = (opts.sensitivity==="loose") ? 4 : (opts.sensitivity==="moderate") ? 5 : 6;
+  const allowContinuation = (opts.sensitivity==="moderate" || opts.sensitivity==="loose");
+  const adxRelaxed = (opts.sensitivity==="loose") ? 15 : (opts.sensitivity==="moderate") ? 18 : 20;
+  const trendOK = adxVal!=null && adxVal>=adxRelaxed;
+  const buyCore   = (B.locA && B.trigA)  || (allowContinuation && htf==="BUY"  && trendOK && B.trigA);
+  const sellCore  = (S.locA && S.trigA)  || (allowContinuation && htf==="SELL" && trendOK && S.trigA);
+  const buyStrong  = (htf==="BUY"  && trendOK) || (supBuy  >= STRONG_CONFLUENCE);
+  const sellStrong = (htf==="SELL" && trendOK) || (supSell >= STRONG_CONFLUENCE);
   const buyReady  = buyCore  && buyStrong;
   const sellReady = sellCore && sellStrong;
 
