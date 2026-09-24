@@ -1,8 +1,8 @@
 {
   "lastDir": {
-    "XAUUSD": "SELL",
-    "XAGUSD": "NEUTRAL",
-    "USDJPY": "BUY"
+    "XAUUSD": "NEUTRAL",
+    "XAGUSD": "SELL",
+    "USDJPY": "NEUTRAL"
   },
   "losses": 0,
   "wins": 0,
