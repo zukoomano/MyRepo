@@ -1,12 +1,12 @@
 {
   "lastDir": {
     "XAUUSD": "NEUTRAL",
-    "XAGUSD": "NEUTRAL",
+    "XAGUSD": "BUY",
     "USDJPY": "NEUTRAL"
   },
   "losses": 0,
   "wins": 0,
   "tripped": null,
-  "day": "2026-10-15",
-  "lastHeartbeat": "2026-10-15"
+  "day": "2026-10-16",
+  "lastHeartbeat": "2026-10-16"
 }
