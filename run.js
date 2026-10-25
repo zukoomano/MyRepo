@@ -15,7 +15,7 @@ const TG_TOKEN  = process.env.TG_TOKEN  || "";
 const TG_CHAT   = process.env.TG_CHAT   || "";
 
 // ---- Settings (edit these) ----
-const TIMEFRAME     = "H1";  // analyse hourly candles (better signal-to-noise than M15)
+const TIMEFRAME     = "M30"; // analyse 30-minute candles
 const SL_POINTS     = 200;   // stop floor in points (engine also enforces 1.2x ATR)
 const SPREAD_POINTS = 0;     // your typical Exness spread in points (0 = ignore)
 const MAX_LOSSES    = 3;     // circuit breaker: pause after N consecutive losses
@@ -91,7 +91,8 @@ async function fetchOANDA(symbol) {
   if (!res.ok) throw new Error(`OANDA HTTP ${res.status}`);
   const data = await res.json();
   if (!data.candles) throw new Error("no candles");
-  const out = data.candles.map(c => ({
+  // Closed candles only: the still-forming candle is dropped so signals never repaint
+  const out = data.candles.filter(c => c.complete).map(c => ({
     time: new Date(c.time).getTime(),
     open:+c.mid.o, high:+c.mid.h, low:+c.mid.l, close:+c.mid.c, volume:c.volume||1000,
   }));
@@ -156,7 +157,7 @@ function metalBlock(sym, sig, isNew, blocked) {
                  sessionActive, sessionName: sess.name, dxyBias:"NEUTRAL", dxyDetail:"",
                  spreadPoints: SPREAD_POINTS };
 
-  const blocks = [];
+  const blocks = [];      // only NEW BUY/SELL opportunities go in here
   for (const sym of SYMBOLS) {
     try {
       const candles = await fetchOANDA(sym);
@@ -172,30 +173,30 @@ function metalBlock(sym, sig, isNew, blocked) {
 
       const isNew = (v !== "NEUTRAL") && !blocked && (st.lastDir[sym] !== v);
       console.log(`${sym}: ${v}${sig?` (${sig.conf}%)`:""}${isNew?" [NEW]":""}${blocked?" [BLOCKED]":""} | ${sess.name}`);
-      blocks.push(metalBlock(sym, sig, isNew, blocked));
+      if (isNew) blocks.push(metalBlock(sym, sig, true, null));   // alert ONLY on a fresh opportunity
       if (!blocked) st.lastDir[sym] = v;
     } catch (e) {
-      console.error(`${sym} error:`, e.message);
-      blocks.push(`⚠️ *${sym}*: data error (${e.message})`);
+      console.error(`${sym} error:`, e.message);              // logged only — no Telegram noise
     }
   }
 
-  let header = `📊 *Metal Signal Pro* · ${TIMEFRAME} · ${utcIST()}`;
-  if (st.lastHeartbeat !== today()) {
-    header = `✅ *Daily heartbeat — system running*\n` + header;
-    st.lastHeartbeat = today();
+  if (blocks.length) {
+    const msg = [
+      `🚨 *Trade opportunity* · ${TIMEFRAME} · ${utcIST()}`,
+      `━━━━━━━━━━━━━━━━━━`,
+      blocks.join("\n\n"),
+      `━━━━━━━━━━━━━━━━━━`,
+      `_Signals are not guaranteed. Test on demo first._`,
+    ].join("\n");
+    await sendTelegram(msg);
+    console.log(`Done. Sent ${blocks.length} opportunity alert(s).`);
+  } else if (st.lastHeartbeat !== today()) {
+    // One short proof-of-life per day, so silence means "no setup", not "bot broken"
+    await sendTelegram(`✅ Metal Signal Pro is running · ${utcIST()}\nNo new opportunity right now — you'll only hear from me when there is one.`);
+    console.log("No opportunity. Daily heartbeat sent.");
+  } else {
+    console.log("No new opportunity — nothing sent.");
   }
-
-  const msg = [
-    header,
-    `━━━━━━━━━━━━━━━━━━`,
-    blocks.join("\n\n"),
-    `━━━━━━━━━━━━━━━━━━`,
-    `⚠️ Enter only on 🚨 *NEW*. Never re-enter an active trade or trade a NEUTRAL.`,
-    `_Signals are not guaranteed. Test on demo first._`,
-  ].join("\n");
-
-  await sendTelegram(msg);
+  if (st.lastHeartbeat !== today()) st.lastHeartbeat = today();
   saveState(st);
-  console.log("Done. Message sent.");
 })().catch(e => { console.error("Fatal:", e.message); process.exit(1); });
