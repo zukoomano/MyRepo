@@ -37,13 +37,13 @@ jobs:
           TG_CHAT:   ${{ secrets.TG_CHAT }}
         run: node run.js
 
-      - name: Save state (so signals don't repeat)
+      - name: Save state and signal log (so signals don't repeat and results are tracked)
         run: |
-          if [ -n "$(git status --porcelain state.json)" ]; then
+          if [ -n "$(git status --porcelain state.json signals.json signal-log.md)" ]; then
             git config user.name "signal-bot"
             git config user.email "bot@users.noreply.github.com"
-            git add state.json
-            git commit -m "update signal state [skip ci]"
+            git add state.json signals.json signal-log.md
+            git commit -m "update signal state and log [skip ci]"
             git push
           else
             echo "No state change to commit."
