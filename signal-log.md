@@ -1,11 +1,12 @@
 # Signal log
 
-Updated 26 Oct 2026 15:57 IST
+Updated 26 Oct 2026 22:25 IST
 
-**Record:** no closed signals yet (2 open)
+**Record:** no closed signals yet (3 open)
 
 | Date (IST) | Pair | Signal | Result |
 |---|---|---|---|
+| 26 Oct 2026 22:25 | XAUUSD | BUY | ⏳ Open |
 | 26 Oct 2026 15:57 | USDJPY | BUY | ⏳ Open |
 | 26 Oct 2026 10:00 | XAUUSD | BUY | ⏳ Open |
 
