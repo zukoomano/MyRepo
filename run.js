@@ -23,12 +23,26 @@ const CORREL_GATE   = true;  // block same-direction signal on the other metal
 const NEWS_BLACKOUT = true;  // pause signals around high-impact releases
 const SYMBOLS       = ["XAUUSD", "XAGUSD", "USDJPY"];
 const STATE_FILE    = "state.json";
+// Targets as multiples of the stop distance (R). TP1 = 1.0 -> profit target equals the risk (1:1),
+// reached far more often than 2:1 but needs a >50% win rate to make money. Results are judged on TP1.
+const TP1_R         = 1.0;
+const TP2_R         = 2.0;
+
+// Dollar value of a price distance at 0.01 lot (gold 1 oz, silver 50 oz, USDJPY 1,000 units)
+function usd01(sym, dist, price){
+  if (sym === "XAUUSD") return dist * 1;
+  if (sym === "XAGUSD") return dist * 50;
+  return dist / price * 1000;
+}
+const money = v => v == null ? "–" : `${v >= 0 ? "+" : "−"}$${Math.abs(v).toFixed(2)}`;
 
 // Per-symbol properties (metals vs JPY pair differ in decimals, pip size)
+// slPoints = minimum stop per pair. One shared value is dangerous: silver's contract is 50x gold's,
+// so 200 points on silver = $100+ risk at 0.01 lot. Per-pair floors keep risk comparable (~$2–10).
 function symProps(sym){
-  if(sym==="USDJPY") return { inst:"USD_JPY", decimals:3, pointSize:0.001, kind:"fx" };
-  if(sym==="XAGUSD") return { inst:"XAG_USD", decimals:4, pointSize:0.01,  kind:"metal" };
-  return                     { inst:"XAU_USD", decimals:2, pointSize:0.01,  kind:"metal" };
+  if(sym==="USDJPY") return { inst:"USD_JPY", decimals:3, pointSize:0.001, kind:"fx",    slPoints:200 }; // 20 pips ≈ $1.30
+  if(sym==="XAGUSD") return { inst:"XAG_USD", decimals:4, pointSize:0.01,  kind:"metal", slPoints:20  }; // $0.20 ≈ $10
+  return                     { inst:"XAU_USD", decimals:2, pointSize:0.01,  kind:"metal", slPoints:200 }; // $2.00 ≈ $2
 }
 
 // ---- Helpers ----
@@ -129,10 +143,12 @@ function metalBlock(sym, sig, isNew, blocked) {
   }
   const dir = v === "BUY" ? "🟢" : "🔴";
   const tag = isNew ? "🚨 *NEW — you may enter*" : "↔️ still active — _don't re-enter_";
+  const L = sig.levels;
   return [
     `${dir} *${sym}: ${v}*  ${tag}`,
-    `   Entry ${fmt(sig.levels.entry,sym)} · SL ${fmt(sig.levels.sl,sym)}`,
-    `   TP1 ${fmt(sig.levels.tp1,sym)} · TP2 ${fmt(sig.levels.tp2,sym)}  (R:R ${sig.levels.rr})`,
+    `   Entry ${fmt(L.entry,sym)} · SL ${fmt(L.sl,sym)}`,
+    `   TP1 ${fmt(L.tp1,sym)} · TP2 ${fmt(L.tp2,sym)}  (R:R ${L.rr})`,
+    `   At 0.01 lot: risk ${money(-usd01(sym, Math.abs(L.entry-L.sl), L.entry))} · TP1 ${money(usd01(sym, Math.abs(L.tp1-L.entry), L.entry))} · TP2 ${money(usd01(sym, Math.abs(L.tp2-L.entry), L.entry))}`,
   ].join("\n");
 }
 
@@ -161,15 +177,24 @@ function resolveOpen(log, sym, candles, now){
   return closed;
 }
 
+// Profit/loss of one tracked signal at 0.01 lot, judged on TP1 vs SL
+function pnl01(s){
+  if (s.status === "WIN")  return  usd01(s.sym, Math.abs(s.tp1 - s.entry), s.entry);
+  if (s.status === "LOSS") return -usd01(s.sym, Math.abs(s.entry - s.sl),  s.entry);
+  return null;
+}
+
 function scorecard(log){
   const done = log.filter(s => s.status === "WIN" || s.status === "LOSS");
   const open = log.filter(s => s.status === "OPEN").length;
   const expired = log.filter(s => s.status === "EXPIRED").length;
   if (!done.length) return `📒 Record: no closed signals yet (${open} open)`;
   const w = done.filter(s => s.status === "WIN").length, l = done.length - w;
-  const netR = done.reduce((a, s) => a + (s.status === "WIN" ? s.rr : -1), 0);
-  return `📒 Record: ${w}W / ${l}L · win rate ${(w/done.length*100).toFixed(0)}% (break-even ~33% at 2:1)` +
-         ` · net ${netR >= 0 ? "+" : ""}${netR.toFixed(1)}R · ${open} open${expired ? ` · ${expired} expired` : ""}`;
+  const avgRR = done.reduce((a, s) => a + s.rr, 0) / done.length;
+  const breakEven = 100 / (1 + avgRR);
+  const netUsd = done.reduce((a, s) => a + pnl01(s), 0);
+  return `📒 Record: ${w}W / ${l}L · win rate ${(w/done.length*100).toFixed(0)}% (needs ~${breakEven.toFixed(0)}% to profit)` +
+         ` · net ${money(netUsd)} at 0.01 lot · ${open} open${expired ? ` · ${expired} expired` : ""}`;
 }
 
 function resultLine(s){
@@ -177,7 +202,8 @@ function resultLine(s){
   const what = s.status === "WIN" ? `TP1 ${fmt(s.tp1, s.sym)} hit`
              : s.status === "LOSS" ? `SL ${fmt(s.sl, s.sym)} hit`
              : "neither TP1 nor SL in 5 days";
-  return `${icon} ${s.sym} ${s.dir} from ${fmt(s.entry, s.sym)} — ${what}`;
+  const pl = pnl01(s);
+  return `${icon} ${s.sym} ${s.dir} from ${fmt(s.entry, s.sym)} — ${what}${pl == null ? "" : ` (${money(pl)} at 0.01 lot)`}`;
 }
 
 // ---- Signal table: Date | Pair | Signal | Result ----
@@ -200,9 +226,10 @@ function writeLogMd(log, now){
     ``,
     scorecard(log).replace("📒 ", "**") .replace(/^(\*\*Record:)/, "$1**"),
     ``,
-    `| Date (IST) | Pair | Signal | Result |`,
-    `|---|---|---|---|`,
-    ...rows.map(s => `| ${istShort(s.sentAt, true)} | ${s.sym} | ${s.dir} | ${RESULT_LABEL[s.status]} |`),
+    `| Date (IST) | Pair | Signal | Entry | SL | TP1 | TP2 | Result | P/L (0.01 lot) |`,
+    `|---|---|---|---|---|---|---|---|---|`,
+    ...rows.map(s => `| ${istShort(s.sentAt, true)} | ${s.sym} | ${s.dir} | ${fmt(s.entry, s.sym)} | ${fmt(s.sl, s.sym)} | ` +
+                     `${fmt(s.tp1, s.sym)} | ${fmt(s.tp2, s.sym)} | ${RESULT_LABEL[s.status]} | ${money(pnl01(s))} |`),
     ``,
     `Win = TP1 reached before SL. Loss = SL reached first, or both inside the same ${TIMEFRAME} candle (order unknown). ` +
     `Expired signals are left out of the win rate. Entry is the published price; spread is not deducted.`,
@@ -218,8 +245,8 @@ function recapText(log, now){
   const pad = (s, n) => String(s).padEnd(n);
   const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const table = [
-    pad("Date", 13) + pad("Pair", 8) + pad("Signal", 7) + "Result",
-    ...recent.map(s => pad(istShort(s.sentAt), 13) + pad(s.sym, 8) + pad(s.dir, 7) + RESULT_SHORT[s.status]),
+    pad("Date", 13) + pad("Pair", 7) + pad("Sig", 5) + pad("Result", 8) + "P/L",
+    ...recent.map(s => pad(istShort(s.sentAt), 13) + pad(s.sym, 7) + pad(s.dir, 5) + pad(RESULT_SHORT[s.status], 8) + money(pnl01(s))),
   ].join("\n");
   return `📋 Signals in the last 24 hours (IST)\n<pre>${esc(table)}</pre>\n${esc(scorecard(log))}\nFull history: ${LOG_MD} in your repo.`;
 }
@@ -255,9 +282,18 @@ function recapText(log, now){
     try {
       const candles = await fetchOANDA(sym);
       results.push(...resolveOpen(log, sym, candles));
-      const symOpts = { ...opts, pointSize: symProps(sym).pointSize };
+      const sp = symProps(sym);
+      const symOpts = { ...opts, pointSize: sp.pointSize,
+                        slPoints: sp.slPoints, tpPoints: sp.slPoints*2, tp2Points: sp.slPoints*3 };
       const sig = generateSignals(candles, symOpts);
       const v = sig ? sig.overall : "NEUTRAL";
+      // Re-set targets from the stop distance: TP1 = TP1_R x risk, TP2 = TP2_R x risk
+      if (v !== "NEUTRAL" && sig.levels && sig.levels.sl != null) {
+        const L = sig.levels, risk = Math.abs(L.entry - L.sl), d = v === "BUY" ? 1 : -1;
+        L.tp1 = L.entry + d * TP1_R * risk;
+        L.tp2 = L.entry + d * TP2_R * risk;
+        L.rr  = TP1_R.toFixed(2);
+      }
 
       let blocked = null;
       if (v !== "NEUTRAL") {
