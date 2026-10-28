@@ -26,7 +26,8 @@
     "rr": 2,
     "candleTime": 1793007000000,
     "sentAt": 1793010456353,
-    "status": "OPEN"
+    "status": "WIN",
+    "closedAt": 1793208600000
   },
   {
     "id": "XAUUSD-1793030400000",
