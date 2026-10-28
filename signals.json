@@ -56,7 +56,8 @@
     "rr": 1,
     "candleTime": 1793212200000,
     "sentAt": 1793214134531,
-    "status": "OPEN",
-    "late": false
+    "status": "LOSS",
+    "late": false,
+    "closedAt": 1793214000000
   }
 ]
