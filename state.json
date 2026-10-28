@@ -9,5 +9,10 @@
   "tripped": null,
   "day": "2026-10-28",
   "lastHeartbeat": "2026-10-28",
-  "lastRecap": "2026-10-28"
+  "lastRecap": "2026-10-28",
+  "lastEval": {
+    "XAUUSD": 1793172600000,
+    "XAGUSD": 1793172600000,
+    "USDJPY": 1793172600000
+  }
 }
