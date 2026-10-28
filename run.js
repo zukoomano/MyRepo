@@ -27,6 +27,8 @@ const STATE_FILE    = "state.json";
 // reached far more often than 2:1 but needs a >50% win rate to make money. Results are judged on TP1.
 const TP1_R         = 1.0;
 const TP2_R         = 2.0;
+// How many recent closed M30 candles each run may check (2 = both candles of the past hour)
+const CATCHUP       = 2;
 
 // Dollar value of a price distance at 0.01 lot (gold 1 oz, silver 50 oz, USDJPY 1,000 units)
 function usd01(sym, dist, price){
@@ -134,7 +136,8 @@ function loadState(){
 function saveState(st){ fs.writeFileSync(STATE_FILE, JSON.stringify(st, null, 2)); }
 
 // ---- Message blocks ----
-function metalBlock(sym, sig, isNew, blocked) {
+// late = { price } when the signal formed on the earlier candle of the hour (found 30 min after it closed)
+function metalBlock(sym, sig, isNew, blocked, late) {
   if (blocked) return `⛔ *${sym}: BLOCKED BY RISK GATE*\n   _${blocked}_`;
   const v = sig ? sig.overall : "NEUTRAL";
   if (v === "NEUTRAL") {
@@ -142,7 +145,8 @@ function metalBlock(sym, sig, isNew, blocked) {
     return `⏸️ *${sym}: NEUTRAL* — no trade, stay out${why}`;
   }
   const dir = v === "BUY" ? "🟢" : "🔴";
-  const tag = isNew ? "🚨 *NEW — you may enter*" : "↔️ still active — _don't re-enter_";
+  const tag = late ? `⏱ *NEW — formed 30 min ago*, price now ${fmt(late.price, sym)}. Check it is still near entry before entering`
+            : isNew ? "🚨 *NEW — you may enter*" : "↔️ still active — _don't re-enter_";
   const L = sig.levels;
   return [
     `${dir} *${sym}: ${v}*  ${tag}`,
@@ -203,7 +207,8 @@ function resultLine(s){
              : s.status === "LOSS" ? `SL ${fmt(s.sl, s.sym)} hit`
              : "neither TP1 nor SL in 5 days";
   const pl = pnl01(s);
-  return `${icon} ${s.sym} ${s.dir} from ${fmt(s.entry, s.sym)} — ${what}${pl == null ? "" : ` (${money(pl)} at 0.01 lot)`}`;
+  const note = s.lateResolved ? " · formed and finished between checks, so no entry alert was sent" : "";
+  return `${icon} ${s.sym} ${s.dir} from ${fmt(s.entry, s.sym)} — ${what}${pl == null ? "" : ` (${money(pl)} at 0.01 lot)`}${note}`;
 }
 
 // ---- Signal table: Date | Pair | Signal | Result ----
@@ -278,6 +283,7 @@ function recapText(log, now){
   const blocks = [];      // only NEW BUY/SELL opportunities go in here
   const log = loadLog();  // every signal ever sent, with its outcome
   const results = [];     // signals that closed (TP1 / SL / expired) this run
+  st.lastEval = st.lastEval || {};   // per pair: time of the last M30 candle already checked
   for (const sym of SYMBOLS) {
     try {
       const candles = await fetchOANDA(sym);
@@ -285,32 +291,51 @@ function recapText(log, now){
       const sp = symProps(sym);
       const symOpts = { ...opts, pointSize: sp.pointSize,
                         slPoints: sp.slPoints, tpPoints: sp.slPoints*2, tp2Points: sp.slPoints*3 };
-      const sig = generateSignals(candles, symOpts);
-      const v = sig ? sig.overall : "NEUTRAL";
-      // Re-set targets from the stop distance: TP1 = TP1_R x risk, TP2 = TP2_R x risk
-      if (v !== "NEUTRAL" && sig.levels && sig.levels.sl != null) {
-        const L = sig.levels, risk = Math.abs(L.entry - L.sl), d = v === "BUY" ? 1 : -1;
-        L.tp1 = L.entry + d * TP1_R * risk;
-        L.tp2 = L.entry + d * TP2_R * risk;
-        L.rr  = TP1_R.toFixed(2);
-      }
 
-      let blocked = null;
-      if (v !== "NEUTRAL") {
-        if (nb) blocked = nb;
-        else blocked = correlationBlocked(st, sym, v);
-      }
+      // Every closed M30 candle since the last run gets checked (normally the 2 from the past hour),
+      // so an hourly schedule still evaluates every 30-minute candle. Already-checked candles are skipped.
+      const lastIdx = candles.length - 1;
+      const seen = st.lastEval[sym] || 0;
+      let toCheck = [];
+      for (let i = Math.max(0, lastIdx - (CATCHUP - 1)); i <= lastIdx; i++) if (candles[i].time > seen) toCheck.push(i);
+      if (!seen) toCheck = [lastIdx];          // very first run: only the latest candle
 
-      const isNew = (v !== "NEUTRAL") && !blocked && (st.lastDir[sym] !== v);
-      console.log(`${sym}: ${v}${sig?` (${sig.conf}%)`:""}${isNew?" [NEW]":""}${blocked?" [BLOCKED]":""} | ${sess.name}`);
-      if (isNew) {
-        blocks.push(metalBlock(sym, sig, true, null));            // alert ONLY on a fresh opportunity
-        const last = candles[candles.length - 1];
-        log.push({ id: `${sym}-${last.time}`, sym, dir: v, tf: TIMEFRAME,
-                   entry: sig.levels.entry, sl: sig.levels.sl, tp1: sig.levels.tp1, tp2: sig.levels.tp2,
-                   rr: parseFloat(sig.levels.rr) || 2, candleTime: last.time, sentAt: Date.now(), status: "OPEN" });
+      for (const i of toCheck) {
+        const late = i < lastIdx;              // this candle closed before the latest one
+        const sig = generateSignals(candles.slice(0, i + 1), symOpts);
+        const v = sig ? sig.overall : "NEUTRAL";
+        // Re-set targets from the stop distance: TP1 = TP1_R x risk, TP2 = TP2_R x risk
+        if (v !== "NEUTRAL" && sig.levels && sig.levels.sl != null) {
+          const L = sig.levels, risk = Math.abs(L.entry - L.sl), d = v === "BUY" ? 1 : -1;
+          L.tp1 = L.entry + d * TP1_R * risk;
+          L.tp2 = L.entry + d * TP2_R * risk;
+          L.rr  = TP1_R.toFixed(2);
+        }
+
+        let blocked = null;
+        if (v !== "NEUTRAL") {
+          if (nb) blocked = nb;
+          else blocked = correlationBlocked(st, sym, v);
+        }
+
+        const isNew = (v !== "NEUTRAL") && !blocked && (st.lastDir[sym] !== v);
+        console.log(`${sym} candle ${istShort(candles[i].time)} IST: ${v}${sig?` (${sig.conf}%)`:""}${isNew?" [NEW]":""}${late?" [earlier candle]":""}${blocked?" [BLOCKED]":""}`);
+        if (isNew) {
+          const rec = { id: `${sym}-${candles[i].time}`, sym, dir: v, tf: TIMEFRAME,
+                        entry: sig.levels.entry, sl: sig.levels.sl, tp1: sig.levels.tp1, tp2: sig.levels.tp2,
+                        rr: parseFloat(sig.levels.rr) || 2, candleTime: candles[i].time, sentAt: Date.now(),
+                        status: "OPEN", late };
+          log.push(rec);
+          if (late && resolveOpen([rec], sym, candles).length) {
+            rec.lateResolved = true;           // already hit TP1/SL before this run: report the result, no entry alert
+            results.push(rec);
+          } else {
+            blocks.push(metalBlock(sym, sig, true, null, late ? { price: candles[lastIdx].close } : null));
+          }
+        }
+        if (!blocked) st.lastDir[sym] = v;
       }
-      if (!blocked) st.lastDir[sym] = v;
+      st.lastEval[sym] = candles[lastIdx].time;
     } catch (e) {
       console.error(`${sym} error:`, e.message);              // logged only — no Telegram noise
     }
