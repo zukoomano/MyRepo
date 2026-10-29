@@ -59,5 +59,22 @@
     "status": "LOSS",
     "late": false,
     "closedAt": 1793214000000
+  },
+  {
+    "id": "USDJPY-1793230200000",
+    "sym": "USDJPY",
+    "dir": "BUY",
+    "tf": "M30",
+    "entry": 157.834,
+    "sl": 157.63400000000001,
+    "tp1": 158.034,
+    "tp2": 158.23399999999998,
+    "rr": 1,
+    "candleTime": 1793230200000,
+    "sentAt": 1793235092243,
+    "status": "WIN",
+    "late": true,
+    "closedAt": 1793232000000,
+    "lateResolved": true
   }
 ]
