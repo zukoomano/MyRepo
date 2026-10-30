@@ -91,5 +91,20 @@
     "sentAt": 1793334222086,
     "status": "OPEN",
     "late": true
+  },
+  {
+    "id": "USDJPY-1793332800000",
+    "sym": "USDJPY",
+    "dir": "SELL",
+    "tf": "M30",
+    "entry": 157.306,
+    "sl": 157.67341694370123,
+    "tp1": 156.9385830562988,
+    "tp2": 156.57116611259758,
+    "rr": 1,
+    "candleTime": 1793332800000,
+    "sentAt": 1793337944601,
+    "status": "OPEN",
+    "late": true
   }
 ]
