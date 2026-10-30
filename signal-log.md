@@ -1,11 +1,12 @@
 # Signal log
 
-Updated 30 Oct 2026 18:07 IST
+Updated 31 Oct 2026 00:02 IST
 
-**Record:** 3W / 3L · win rate 50% (needs ~40% to profit) · net +$12.56 at 0.01 lot · 1 open
+**Record:** 3W / 3L · win rate 50% (needs ~40% to profit) · net +$12.56 at 0.01 lot · 2 open
 
 | Date (IST) | Pair | Signal | Entry | SL | TP1 | TP2 | Result | P/L (0.01 lot) |
 |---|---|---|---|---|---|---|---|---|
+| 31 Oct 2026 00:02 | XAUUSD | SELL | 3883.76 | 3917.48 | 3850.03 | 3816.31 | ⏳ Open | – |
 | 30 Oct 2026 10:55 | USDJPY | SELL | 157.306 | 157.673 | 156.939 | 156.571 | ❌ Loss (SL hit) | −$2.34 |
 | 30 Oct 2026 09:53 | USDJPY | SELL | 157.377 | 157.894 | 156.860 | 156.343 | ⏳ Open | – |
 | 29 Oct 2026 06:21 | USDJPY | BUY | 157.834 | 157.634 | 158.034 | 158.234 | ✅ Win (TP1 hit) | +$1.27 |
