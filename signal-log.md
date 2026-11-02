@@ -1,6 +1,6 @@
 # Signal log
 
-Updated 02 Nov 2026 21:09 IST
+Updated 03 Nov 2026 04:57 IST
 
 **Record:** 3W / 5L · win rate 38% (needs ~42% to profit) · net −$24.45 at 0.01 lot · 1 open
 
