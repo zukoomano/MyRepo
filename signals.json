@@ -89,8 +89,9 @@
     "rr": 1,
     "candleTime": 1793329200000,
     "sentAt": 1793334222086,
-    "status": "OPEN",
-    "late": true
+    "status": "LOSS",
+    "late": true,
+    "closedAt": 1793584800000
   },
   {
     "id": "USDJPY-1793332800000",
