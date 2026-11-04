@@ -153,8 +153,9 @@
     "rr": 1,
     "candleTime": 1793734200000,
     "sentAt": 1793739417722,
-    "status": "OPEN",
-    "late": true
+    "status": "LOSS",
+    "late": true,
+    "closedAt": 1793754000000
   },
   {
     "id": "USDJPY-1793752200000",
@@ -168,7 +169,23 @@
     "rr": 1,
     "candleTime": 1793752200000,
     "sentAt": 1793755077887,
+    "status": "LOSS",
+    "late": false,
+    "closedAt": 1793754000000
+  },
+  {
+    "id": "XAUUSD-1793779200000",
+    "sym": "XAUUSD",
+    "dir": "BUY",
+    "tf": "M30",
+    "entry": 4028.25,
+    "sl": 3985.955085523858,
+    "tp1": 4070.544914476142,
+    "tp2": 4112.839828952284,
+    "rr": 1,
+    "candleTime": 1793779200000,
+    "sentAt": 1793782978017,
     "status": "OPEN",
-    "late": false
+    "late": true
   }
 ]
