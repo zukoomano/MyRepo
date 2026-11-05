@@ -1,12 +1,12 @@
 # Signal log
 
-Updated 05 Nov 2026 20:55 IST
+Updated 06 Nov 2026 03:27 IST
 
-**Record:** 5W / 8L · win rate 38% (needs ~45% to profit) · net +$18.05 at 0.01 lot · 1 open
+**Record:** 5W / 9L · win rate 36% (needs ~45% to profit) · net −$20.63 at 0.01 lot · 0 open
 
 | Date (IST) | Pair | Signal | Entry | SL | TP1 | TP2 | Result | P/L (0.01 lot) |
 |---|---|---|---|---|---|---|---|---|
-| 05 Nov 2026 12:05 | XAUUSD | BUY | 4127.90 | 4089.21 | 4166.58 | 4205.26 | ⏳ Open | – |
+| 05 Nov 2026 12:05 | XAUUSD | BUY | 4127.90 | 4089.21 | 4166.58 | 4205.26 | ❌ Loss (SL hit) | −$38.68 |
 | 04 Nov 2026 22:40 | XAUUSD | BUY | 4066.40 | 4027.62 | 4105.18 | 4143.95 | ✅ Win (TP1 hit) | +$38.78 |
 | 04 Nov 2026 14:32 | XAUUSD | BUY | 4028.25 | 3985.96 | 4070.54 | 4112.84 | ✅ Win (TP1 hit) | +$42.29 |
 | 04 Nov 2026 06:47 | USDJPY | BUY | 158.497 | 158.297 | 158.697 | 158.897 | ❌ Loss (SL hit) | −$1.26 |
