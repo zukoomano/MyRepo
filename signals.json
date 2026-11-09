@@ -249,7 +249,23 @@
     "rr": 1,
     "candleTime": 1793971800000,
     "sentAt": 1793976922414,
+    "status": "LOSS",
+    "late": true,
+    "closedAt": 1793977200000
+  },
+  {
+    "id": "XAUUSD-1794186000000",
+    "sym": "XAUUSD",
+    "dir": "BUY",
+    "tf": "M30",
+    "entry": 4106.77,
+    "sl": 4071.6490661551925,
+    "tp1": 4141.890933844808,
+    "tp2": 4177.011867689616,
+    "rr": 1,
+    "candleTime": 1794186000000,
+    "sentAt": 1794188330129,
     "status": "OPEN",
-    "late": true
+    "late": false
   }
 ]
