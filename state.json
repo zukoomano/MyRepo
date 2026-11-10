@@ -7,12 +7,12 @@
   "losses": 0,
   "wins": 0,
   "tripped": null,
-  "day": "2026-11-09",
-  "lastHeartbeat": "2026-11-09",
-  "lastRecap": "2026-11-09",
+  "day": "2026-11-10",
+  "lastHeartbeat": "2026-11-10",
+  "lastRecap": "2026-11-10",
   "lastEval": {
-    "XAUUSD": 1794241800000,
-    "XAGUSD": 1794241800000,
-    "USDJPY": 1794241800000
+    "XAUUSD": 1794270600000,
+    "XAGUSD": 1794270600000,
+    "USDJPY": 1794270600000
   }
 }
