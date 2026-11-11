@@ -297,8 +297,9 @@
     "rr": 1,
     "candleTime": 1794328200000,
     "sentAt": 1794332634557,
-    "status": "OPEN",
-    "late": true
+    "status": "WIN",
+    "late": true,
+    "closedAt": 1794402000000
   },
   {
     "id": "XAGUSD-1794373200000",
