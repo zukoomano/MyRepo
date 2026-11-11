@@ -281,8 +281,9 @@
     "rr": 1,
     "candleTime": 1794328200000,
     "sentAt": 1794332633582,
-    "status": "OPEN",
-    "late": true
+    "status": "LOSS",
+    "late": true,
+    "closedAt": 1794375000000
   },
   {
     "id": "USDJPY-1794328200000",
@@ -296,6 +297,21 @@
     "rr": 1,
     "candleTime": 1794328200000,
     "sentAt": 1794332634557,
+    "status": "OPEN",
+    "late": true
+  },
+  {
+    "id": "XAGUSD-1794373200000",
+    "sym": "XAGUSD",
+    "dir": "BUY",
+    "tf": "M30",
+    "entry": 52.846,
+    "sl": 52.2704146203895,
+    "tp1": 53.42158537961049,
+    "tp2": 53.997170759220985,
+    "rr": 1,
+    "candleTime": 1794373200000,
+    "sentAt": 1794376912041,
     "status": "OPEN",
     "late": true
   }

@@ -1,18 +1,18 @@
 {
   "lastDir": {
     "XAUUSD": "NEUTRAL",
-    "XAGUSD": "NEUTRAL",
+    "XAGUSD": "BUY",
     "USDJPY": "NEUTRAL"
   },
   "losses": 0,
   "wins": 0,
   "tripped": null,
-  "day": "2026-11-10",
-  "lastHeartbeat": "2026-11-10",
-  "lastRecap": "2026-11-10",
+  "day": "2026-11-11",
+  "lastHeartbeat": "2026-11-11",
+  "lastRecap": "2026-11-11",
   "lastEval": {
-    "XAUUSD": 1794346200000,
-    "XAGUSD": 1794346200000,
-    "USDJPY": 1794349800000
+    "XAUUSD": 1794375000000,
+    "XAGUSD": 1794375000000,
+    "USDJPY": 1794375000000
   }
 }
