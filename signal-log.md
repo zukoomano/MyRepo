@@ -1,6 +1,6 @@
 # Signal log
 
-Updated 12 Nov 2026 03:22 IST
+Updated 12 Nov 2026 08:24 IST
 
 **Record:** 7W / 13L · win rate 35% (needs ~47% to profit) · net −$86.89 at 0.01 lot · 1 open
 
