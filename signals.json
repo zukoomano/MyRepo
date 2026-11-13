@@ -364,5 +364,20 @@
     "status": "WIN",
     "late": false,
     "closedAt": 1794574800000
+  },
+  {
+    "id": "XAGUSD-1794601800000",
+    "sym": "XAGUSD",
+    "dir": "SELL",
+    "tf": "M30",
+    "entry": 48.88,
+    "sl": 49.3435,
+    "tp1": 48.416500000000006,
+    "tp2": 47.95300000000001,
+    "rr": 1,
+    "candleTime": 1794601800000,
+    "sentAt": 1794606787145,
+    "status": "OPEN",
+    "late": true
   }
 ]

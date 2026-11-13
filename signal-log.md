@@ -1,11 +1,12 @@
 # Signal log
 
-Updated 13 Nov 2026 20:46 IST
+Updated 14 Nov 2026 03:23 IST
 
-**Record:** 10W / 13L · win rate 43% (needs ~47% to profit) · net −$15.97 at 0.01 lot · 0 open
+**Record:** 10W / 13L · win rate 43% (needs ~47% to profit) · net −$15.97 at 0.01 lot · 1 open
 
 | Date (IST) | Pair | Signal | Entry | SL | TP1 | TP2 | Result | P/L (0.01 lot) |
 |---|---|---|---|---|---|---|---|---|
+| 14 Nov 2026 03:23 | XAGUSD | SELL | 48.8800 | 49.3435 | 48.4165 | 47.9530 | ⏳ Open | – |
 | 13 Nov 2026 11:42 | XAUUSD | SELL | 3904.49 | 3926.19 | 3882.78 | 3861.08 | ✅ Win (TP1 hit) | +$21.70 |
 | 12 Nov 2026 16:27 | XAUUSD | SELL | 3943.95 | 3975.23 | 3912.68 | 3881.40 | ✅ Win (TP1 hit) | +$31.28 |
 | 12 Nov 2026 03:22 | XAUUSD | SELL | 3985.28 | 4003.22 | 3967.33 | 3949.38 | ✅ Win (TP1 hit) | +$17.95 |
