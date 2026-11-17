@@ -1,14 +1,14 @@
 # Signal log
 
-Updated 17 Nov 2026 06:16 IST
+Updated 17 Nov 2026 14:38 IST
 
-**Record:** 11W / 13L · win rate 46% (needs ~47% to profit) · net +$7.21 at 0.01 lot · 3 open
+**Record:** 13W / 13L · win rate 50% (needs ~47% to profit) · net +$55.35 at 0.01 lot · 1 open
 
 | Date (IST) | Pair | Signal | Entry | SL | TP1 | TP2 | Result | P/L (0.01 lot) |
 |---|---|---|---|---|---|---|---|---|
-| 16 Nov 2026 11:46 | USDJPY | SELL | 159.496 | 159.891 | 159.101 | 158.705 | ⏳ Open | – |
+| 16 Nov 2026 11:46 | USDJPY | SELL | 159.496 | 159.891 | 159.101 | 158.705 | ✅ Win (TP1 hit) | +$2.48 |
 | 16 Nov 2026 11:46 | XAGUSD | SELL | 47.2265 | 48.1612 | 46.2918 | 45.3572 | ⏳ Open | – |
-| 16 Nov 2026 07:22 | XAGUSD | SELL | 47.8920 | 48.8052 | 46.9788 | 46.0655 | ⏳ Open | – |
+| 16 Nov 2026 07:22 | XAGUSD | SELL | 47.8920 | 48.8052 | 46.9788 | 46.0655 | ✅ Win (TP1 hit) | +$45.66 |
 | 14 Nov 2026 03:23 | XAGUSD | SELL | 48.8800 | 49.3435 | 48.4165 | 47.9530 | ✅ Win (TP1 hit) | +$23.17 |
 | 13 Nov 2026 11:42 | XAUUSD | SELL | 3904.49 | 3926.19 | 3882.78 | 3861.08 | ✅ Win (TP1 hit) | +$21.70 |
 | 12 Nov 2026 16:27 | XAUUSD | SELL | 3943.95 | 3975.23 | 3912.68 | 3881.40 | ✅ Win (TP1 hit) | +$31.28 |
