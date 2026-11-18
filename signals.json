@@ -428,5 +428,20 @@
     "status": "WIN",
     "late": true,
     "closedAt": 1794895200000
+  },
+  {
+    "id": "XAUUSD-1795028400000",
+    "sym": "XAUUSD",
+    "dir": "SELL",
+    "tf": "M30",
+    "entry": 3727.98,
+    "sl": 3759.060806128021,
+    "tp1": 3696.899193871979,
+    "tp2": 3665.8183877439583,
+    "rr": 1,
+    "candleTime": 1795028400000,
+    "sentAt": 1795033539533,
+    "status": "OPEN",
+    "late": true
   }
 ]
